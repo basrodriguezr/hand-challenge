@@ -30,7 +30,73 @@
  * Como las celdas de memoria son bytes, de 0 a 255 valores, si disminuyes 0 obtendrás 255, si incrementas 255 obtendrás 0
  * Se pueden anidar bucles de 🤜 y 🤛.
 */
+require('dotenv').config();
+const fs = require("fs");
+/**
+ * Array.from crea un array a partir de un string, 
+ * los separa por el caracter que representa el ' '
+*/
+const readFile =  fs.readFileSync('./tests/helloTest.hand',{encoding:'utf8', flag:'r'});
 
-const MEMORY_MIN_VALUE = 0;
-const MEMORY_MAX_VALUE = 255;
+const translateHands = (text) => {
+    
+    let output = '';
+    let arrayHands = Array.from(text);    
+    let memory = [0];
+    let pointer = 0;
+    let index=0;   
 
+    while(index < arrayHands.length){
+        switch (arrayHands[index]){
+            case '👉':
+                pointer++;
+                if(memory[pointer]===undefined) memory.push(0);
+            break;
+
+            case '👈':
+                pointer--;
+                if(memory[pointer]===undefined) memory.push(0);
+            break;
+
+            case '👆':
+                memory[pointer] = setMemorySpace(parseInt(memory[pointer]) + 1);
+            break;
+
+            case '👇':
+                memory[pointer] = setMemorySpace(parseInt(memory[pointer]) - 1);                
+            break;
+            
+            case '🤜':
+                if(memory[pointer] === 0){
+                    index = arrayHands.indexOf('🤛',index);
+                }
+            break;
+            
+            case '🤛':
+                if(memory[pointer] !== 0){
+                    index = arrayHands.lastIndexOf('🤜',index);
+                }
+            break;
+            
+            case '👊':
+                output += String.fromCharCode(memory[pointer]);
+            break;
+        }
+        
+        index++;
+    }
+    
+    return output;
+}
+
+setMemorySpace = (value) =>{
+    if(value<process.env.MEMORY_MIN_VALUE) return process.env.MEMORY_MAX_VALUE;
+    if(value>process.env.MEMORY_MAX_VALUE) return process.env.MEMORY_MIN_VALUE; 
+    return value;
+}
+
+//console.log(translateHands(readFile));
+
+module.exports = {
+    translateHands
+}
